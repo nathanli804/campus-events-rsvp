@@ -72,19 +72,23 @@ export default function EventsApp() {
   // WRITE FLOW: called by RsvpForm with { eventId, name, email }.
   // Must return { kind: "success" | "error" | "notice", message } for the form to display.
   async function submitRsvp(rsvp) {
-    // ===== STUDENT CHANGE 2 START: send the RSVP with POST /api/rsvps =====
-    // Right now nothing is sent anywhere. The `rsvp` object is ignored.
-    //
-    // Goal: call fetch("/api/rsvps", { method: "POST", headers: { "Content-Type": "application/json" },
-    // body: JSON.stringify(rsvp) }), read the JSON body, call logRequest(...), then return:
-    //   - if response.ok:  { kind: "success", message: body.message }
-    //   - otherwise:       { kind: "error", message: body.error.message }
-    //   - if fetch throws: { kind: "error", message: "Could not reach the API..." }
-    // Do not console.log the rsvp object: it contains a name and email.
-    return {
-      kind: "notice",
-      message: "Starter mode: nothing was saved. This form does not send data yet (STUDENT CHANGE 2).",
-    };
+        // ===== STUDENT CHANGE 2 START: POST /api/rsvps =====
+    try {
+      const response = await fetch("/api/rsvps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rsvp),
+      });
+      const body = await response.json();
+      logRequest("POST", "/api/rsvps", response.status, body);
+
+      if (response.ok) {
+        return { kind: "success", message: body.message };
+      }
+      return { kind: "error", message: body.error?.message ?? "The RSVP could not be saved." };
+    } catch {
+      return { kind: "error", message: "Could not reach the API. Check your connection and try again." };
+    }
     // ===== STUDENT CHANGE 2 END =====
   }
 
@@ -94,12 +98,6 @@ export default function EventsApp() {
         <h1>Campus Events</h1>
         <p>Fictional events for a class exercise. Use fictional names and emails only.</p>
       </header>
-
-      {/* ===== STUDENT CHANGE 3: delete this banner after changes 1 and 2 work ===== */}
-      <p className="banner" role="note">
-        Sample data mode: database/API connection not completed. Events below are sample data from
-        components/sample-data.js, and RSVPs are not saved.
-      </p>
 
       <main className="layout">
         <section className="panel" aria-labelledby="events-heading">
@@ -115,16 +113,12 @@ export default function EventsApp() {
               key={details.event.id}
               event={details.event}
               onSubmitRsvp={submitRsvp}
-              // STUDENT CHANGE 3: delete the starterNotice line below after change 2 works.
-              starterNotice="Starter mode: this form does not save yet."
             />
           )}
         </section>
 
         <RequestInspector
           entries={requestLog}
-          // STUDENT CHANGE 3: delete the emptyMessage line below after change 1 works.
-          emptyMessage="No API requests yet. In sample data mode, events are read from a file already in the browser, so nothing crosses the network."
         />
       </main>
     </>
