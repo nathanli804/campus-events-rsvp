@@ -1,0 +1,18 @@
+# Dependencies and build output
+node_modules/
+.next/
+out/
+
+# Real environment files contain secrets. Never commit them.
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+# The example file has placeholders only, so it IS committed.
+!.env.example
+
+# Logs and OS files
+npm-debug.log*
+.DS_Store
+Thumbs.db

@@ -1,0 +1,90 @@
+# Campus Events RSVP: example requests
+#
+# How to use:
+#   - VS Code: install the "REST Client" extension, then click "Send Request"
+#     above any request. (JetBrains IDEs support .http files natively.)
+#   - No extension? See docs/api-reference.md for browser-console and curl versions.
+#
+# Set baseUrl to your Ready Vercel deployment. Use FICTIONAL names and emails only.
+# Optional local work: use http://localhost:3000 after starting npm run dev.
+# Event IDs 1-4 exist after running database/seed.sql.
+# In the STARTER, GET /api/events and POST /api/rsvps return 501 until finished.
+
+@baseUrl = https://YOUR-PROJECT.vercel.app
+
+### 1. List events -> 200 { "data": [ ... ] }
+GET {{baseUrl}}/api/events
+
+### 2. One event -> 200 { "data": { ... } }
+GET {{baseUrl}}/api/events/1
+
+### 3. Malformed event ID -> 400 INVALID_EVENT_ID
+GET {{baseUrl}}/api/events/abc
+
+### 4. Event that does not exist -> 404 EVENT_NOT_FOUND
+GET {{baseUrl}}/api/events/9999
+
+### 5. Valid RSVP -> 201 (run once; running it again gives 409)
+POST {{baseUrl}}/api/rsvps
+Content-Type: application/json
+
+{
+  "eventId": 1,
+  "name": "Alex Example",
+  "email": "alex@example.com"
+}
+
+### 6. Duplicate RSVP (same event + same email, different case and spaces) -> 409 DUPLICATE_RSVP
+POST {{baseUrl}}/api/rsvps
+Content-Type: application/json
+
+{
+  "eventId": 1,
+  "name": "Alex Example",
+  "email": "  ALEX@example.com  "
+}
+
+### 7. Missing email -> 400 VALIDATION_ERROR (the browser form would stop this; the API must too)
+POST {{baseUrl}}/api/rsvps
+Content-Type: application/json
+
+{
+  "eventId": 1,
+  "name": "Sam Sample"
+}
+
+### 8. Badly formatted email -> 400 VALIDATION_ERROR
+POST {{baseUrl}}/api/rsvps
+Content-Type: application/json
+
+{
+  "eventId": 1,
+  "name": "Sam Sample",
+  "email": "not-an-email"
+}
+
+### 9. eventId as a string instead of a number -> 400 VALIDATION_ERROR
+POST {{baseUrl}}/api/rsvps
+Content-Type: application/json
+
+{
+  "eventId": "1",
+  "name": "Sam Sample",
+  "email": "sam@example.com"
+}
+
+### 10. Unknown event -> 404 EVENT_NOT_FOUND
+POST {{baseUrl}}/api/rsvps
+Content-Type: application/json
+
+{
+  "eventId": 9999,
+  "name": "Sam Sample",
+  "email": "sam@example.com"
+}
+
+### 11. Malformed JSON (missing closing brace) -> 400 INVALID_JSON
+POST {{baseUrl}}/api/rsvps
+Content-Type: application/json
+
+{ "eventId": 1, "name": "Sam Sample"
