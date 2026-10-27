@@ -16,7 +16,7 @@ import EventList from "./EventList";
 import EventDetails from "./EventDetails";
 import RsvpForm from "./RsvpForm";
 import RequestInspector from "./RequestInspector";
-import { SAMPLE_EVENTS } from "./sample-data"; // remove after STUDENT CHANGE 1
+
 
 let nextLogId = 1;
 
@@ -36,17 +36,24 @@ export default function EventsApp() {
 
   // READ FLOW: runs once when the page opens.
   useEffect(() => {
-    // ===== STUDENT CHANGE 1 START: replace sample data with GET /api/events =====
-    // Right now the events come from components/sample-data.js, which is already
-    // in the browser. No HTTP request happens, so DevTools → Network shows nothing.
-    //
-    // Goal: call fetch("/api/events", { method: "GET" }), read the JSON body,
-    // call logRequest(...), then:
-    //   - if response.ok: setEvents(body.data) and setListState({ status: "ready", message: "" })
-    //   - otherwise:      setListState({ status: "error", message: body.error.message })
-    //   - if fetch throws: setListState({ status: "error", message: "Could not reach the API..." })
-    setEvents(SAMPLE_EVENTS);
-    setListState({ status: "ready", message: "" });
+    // ===== STUDENT CHANGE 1 START: GET /api/events =====
+    async function loadEvents() {
+      try {
+        const response = await fetch("/api/events", { method: "GET" });
+        const body = await response.json();
+        logRequest("GET", "/api/events", response.status, body);
+
+        if (response.ok) {
+          setEvents(body.data);
+          setListState({ status: "ready", message: "" });
+        } else {
+          setListState({ status: "error", message: body.error?.message ?? "Could not load events." });
+        }
+      } catch {
+        setListState({ status: "error", message: "Could not reach the API. Check your connection and try again." });
+      }
+    }
+    loadEvents();
     // ===== STUDENT CHANGE 1 END =====
   }, []);
 
